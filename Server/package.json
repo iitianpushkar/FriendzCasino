@@ -1,0 +1,17 @@
+{
+  "name": "friendzcasino",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ethers": "^6.13.7",
+    "express": "^5.1.0"
+  }
+}
