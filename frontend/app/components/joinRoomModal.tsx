@@ -1,0 +1,91 @@
+"use client";
+
+import { useContractCall } from "./contractCall";
+import { useState,useEffect} from "react";
+import { useRouter } from "next/navigation";
+import { parseEther } from "viem";
+
+interface RoomModalProps {
+    joinMinesModal: boolean;
+    setjoinMinesModal: React.Dispatch<React.SetStateAction<boolean>>;
+  }
+
+
+function JoinRoomModal({joinMinesModal,setjoinMinesModal}: RoomModalProps) {
+
+    const router = useRouter();
+
+  const [roomId, setRoomId] = useState("");
+  const [betAmount, setBetAmount] = useState("");
+  const { callContract,success, data } = useContractCall();
+
+  const [isSuccess, setIsSuccess] = useState(success);
+  const [txData, setTxData] = useState(data);
+
+    useEffect(() => {
+      if(success) {
+        setIsSuccess(success);
+        setTxData(data);
+
+        router.push(`/Games/mines/${roomId}`);
+
+        setjoinMinesModal(false);
+        setRoomId("");
+        setBetAmount("");
+
+        console.log(`Room joined successfully at ${roomId} with bet amount ${betAmount}`);
+      }
+      else{
+        setIsSuccess(false);
+        setTxData({});
+      }
+    },[success, data]);
+
+  
+  const joinRoom = async () => {
+    try {
+        await callContract({
+        functionName: "joinRoom",
+        args: [roomId],
+        value: parseEther(betAmount),
+      });
+    } catch (error) {
+      console.error("Error joining room:", error);
+    }
+  };
+  return (
+    <div>
+        {/* Modal */}
+      {joinMinesModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center">
+    {/* Overlay */}
+    <div className="absolute inset-0  backdrop-blur-[1px]"></div>
+
+    {/* Modal content */}
+    <div className="relative bg-[#1a2338] p-6 rounded-xl w-full max-w-md text-white shadow-2xl z-10">
+      <h2 className="text-xl font-bold mb-4 text-center">Join Room</h2>
+      <div className="flex flex-col gap-4">
+      <input className='border border-amber-50 w-full mb-4' placeholder='Enter room name' onChange={(e)=>setRoomId(e.target.value)} />
+      <input className='border border-amber-50 w-full mb-4' placeholder='Enter bet amount' type="number" onChange={(e)=>setBetAmount(e.target.value)} />
+      </div>
+      <div className="flex justify-between">
+        <button type="button" className="bg-blue-600 p-2 rounded hover:bg-blue-700" onClick={joinRoom}>
+          Create
+        </button>
+        <button
+          type="button"
+          onClick={() => setjoinMinesModal(false)}
+          className="bg-gray-500 p-2 rounded hover:bg-gray-600"
+        >
+          Cancel
+        </button>
+        </div>
+    </div>
+  </div>
+)}
+      
+    </div>
+  )
+}
+
+export default JoinRoomModal

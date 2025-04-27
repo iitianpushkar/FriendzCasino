@@ -4,9 +4,6 @@ import { useEffect, useState } from "react";
 import Navbar from "@/app/components/navbar";
 import HomeSidebar from "@/app/components/homeSidebar";
 import {  useParams } from "next/navigation";
-import { useProgram } from "@/app/components/ProgramProvider";
-import { useAnchorWallet } from "@solana/wallet-adapter-react";
-import { PublicKey } from "@solana/web3.js";
 import Image from "next/image";
 
 export default function RoomMines() {
@@ -19,134 +16,21 @@ export default function RoomMines() {
   const params= useParams();
   const {roomId} = params as {roomId: string};
   console.log("Room ID:", roomId);
-
-  const {program} = useProgram();
-  const wallet = useAnchorWallet();
-
-  const publicKey = wallet?.publicKey;
-
-  const roomPubkey = new PublicKey(roomId);
-    console.log("roompubkey from bet: ", roomPubkey);
-
-    console.log("minepositions: ", minePositions);
-    console.log("revealedcells: ", revealedCells);
-
-    useEffect(() => {
-      if (!program) return;
-    
-      const listeners: number[] = [];
-    
-      const setupListeners = async () => {
-        const cellListener = await program.addEventListener("PlayerClickedEvent", (event) => {
-          if (event.player.toString() === publicKey?.toString()) {
-            console.log(`💎 Player ${event.player.toString()} clicked cell ${event.cell} (score ${event.score})`);
-            setMessage(`You clicked cell ${event.cell}. Score: ${event.score}`);
-            setRevealedCells((prev) => [...new Set([...prev, event.cell])]);
-          } 
-        });
-    
-        const mineListener = await program.addEventListener("MineHitEvent", (event) => {
-          if(event.player.toString() === publicKey?.toString()) {
-            console.log(`💥 Player ${event.player.toString()} hit a mine at cell ${event.cell}`);
-            setMessage(`💥 You hit a mine at cell ${event.cell}`);
-            setMinePositions((prev) => [...new Set([...prev, event.cell])]); 
-          }// reveal mine
-        });
-    
-        const gameOverListener = await program.addEventListener("GameOverEvent", (event) => {
-          console.log(`🏆 Game Over! Winner: ${event.winner.toString()} with score ${event.score}`);
-          setMessage(`🏆 Game Over! Winner: ${event.winner.toString()} (score ${event.score})`);
-          setBetPlaced(false);
-        });
-    
-        const restartListener = await program.addEventListener("GameStartedEvent", (event) => {
-          console.log(`🔄 Game started by ${event.leader.toString()}`);
-          setMessage("🔄 Game started! Start clicking.");
-          setBetPlaced(true);
-          setRevealedCells([]);
-          setMinePositions([]);
-        });
-
-        const waitListener = await program.addEventListener("WaitForOthersEvent", (event) => {
-
-          if(event.player.toString() === publicKey?.toString()) {
-
-          console.log(`⏳ Waiting for other players to finish...`);
-          setMessage("⏳ Waiting for other players to finish...");
-          }
-        });
-    
-        listeners.push(cellListener, mineListener, gameOverListener, restartListener,waitListener);
-      };
-    
-      setupListeners();
-    
-      // Clean up listeners when component unmounts
-      return () => {
-        listeners.forEach((listenerId) => {
-          program.removeEventListener(listenerId);
-        });
-      };
-    }, [program,publicKey]);
-    
+  
 
   const handleBet = async () => {
 
-    if(!program || !publicKey) {
-      console.log("Program or wallet not found");
-      return;
-    }
-
-    
-
-    try{
-
-    const tx = await program.methods
-          .startGame()
-          .accounts({
-            room: roomPubkey,
-            user: publicKey,
-          })
-          .rpc();
-    console.log("Transaction: ", tx);
-    console.log("Bet placed successfully");
-    } catch (error) {
-      console.error("Error placing bet:", error);
-      setMessage("Error placing bet. Please try again.");
-    }
   };
 
   const handleCellClick = async (idx: number) => {
-    if(!program || !publicKey) {
-      console.log("Program or wallet not found");
-      return;
-    }
-    if (!betPlaced) {
-      setMessage("Place your bet first.");
-      return;
-    }
 
-    if (revealedCells.includes(idx)) return;
-    if (minePositions.includes(idx)) return;
-
-    const tx = await program.methods
-      .clickCell(idx)
-      .accounts({
-        room: roomPubkey,
-        user: publicKey,
-      })
-      .rpc();
-    console.log("Transaction: ", tx);
   };
 
   const renderCellContent = (idx: number) => {
-
-    if (minePositions.includes(idx)) {
-      return <Image src="/mine.svg" alt="mine" width={111} height={101} />;
-    }  
-    if(revealedCells.includes(idx)) {
-      return <Image src="/gem.svg" alt="gem" width={111} height={101} />;
+    if (revealedCells.includes(idx)) {
+      return minePositions.includes(idx) ? "💣" : "💎";
     }
+    return null;
   };
 
   

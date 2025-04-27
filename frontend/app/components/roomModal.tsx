@@ -1,6 +1,8 @@
 "use client";
 
-import React from 'react'
+import React,{ useEffect, useState} from 'react'
+import { useContractCall } from './contractCall';
+import { parseEther } from 'viem';
 
 interface RoomModalProps {
     showModal: boolean;
@@ -9,11 +11,40 @@ interface RoomModalProps {
 
   function RoomModal({ showModal, setShowModal }: RoomModalProps) {
 
-    
+    const [roomId, setRoomId] = React.useState("");
+    const [betAmount, setBetAmount] = React.useState("");
+    const { callContract,success,data } = useContractCall();
 
-    const createRoom = async ()=>{
+    const [isSuccess, setIsSuccess] = useState(success);
+    const [txData, setTxData] = useState(data);
 
-    }
+    useEffect(() => {
+      if(success) {
+        setIsSuccess(success);
+        setTxData(data);
+        setShowModal(false);
+        setRoomId("");
+        setBetAmount("");
+        console.log(`Room created successfully at ${roomId} with bet amount ${betAmount}`);
+      }
+      else{
+        setIsSuccess(false);
+        setTxData({});
+      }
+    },[success, data]);
+
+    const createRoom = async () => {
+      try {
+          await callContract({
+          functionName: "createRoom",
+          args: [roomId, parseEther(betAmount)],
+
+
+        });
+      } catch (error) {
+        console.error("Error creating room:", error);
+      }
+    };
   return (
     <div>
         {/* Modal */}
@@ -24,9 +55,12 @@ interface RoomModalProps {
 
     {/* Modal content */}
     <div className="relative bg-[#1a2338] p-6 rounded-xl w-full max-w-md text-white shadow-2xl z-10">
-      <h2 className="text-xl font-bold mb-4">Create a New Room</h2>
-
-        
+      <h2 className="text-xl font-bold mb-4 text-center">Create a New Room</h2>
+      <div>
+      <input className='border border-amber-50 w-full mb-4' placeholder='Enter room name' onChange={(e)=>setRoomId(e.target.value)} />
+      <input className='border border-amber-50 w-full mb-4' placeholder='Enter bet amount' type="number" onChange={(e)=>setBetAmount(e.target.value)} />
+      </div>
+      <div className="flex justify-between">
         <button type="button" className="bg-blue-600 p-2 rounded hover:bg-blue-700" onClick={createRoom}>
           Create
         </button>
@@ -37,6 +71,7 @@ interface RoomModalProps {
         >
           Cancel
         </button>
+        </div>
     </div>
   </div>
 )}

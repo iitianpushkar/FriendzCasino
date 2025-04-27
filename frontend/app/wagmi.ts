@@ -6,7 +6,7 @@ export const config = createConfig({
   chains: [baseSepolia],
   connectors: [
     coinbaseWallet({
-      appName: "Base Paymaster Examples",
+      appName: "FriendzCasino",
       preference: "smartWalletOnly",
       version: "4",
     }),

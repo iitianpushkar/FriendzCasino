@@ -2,9 +2,14 @@
 
 import Link from "next/link"
 import Image from "next/image";
+import { useState } from "react";
+import JoinRoomModal from "./joinRoomModal";
+
 
 
 export default function HomeMain (){
+
+    const [joinMinesModal, setjoinMinesModal] = useState(false);
     return(   
     <>
 
@@ -28,14 +33,13 @@ export default function HomeMain (){
         <div className="games-section w-full h-[232px] overflow-x-auto whitespace-nowrap space-x-4 flex px-2 scroll-smooth scrollbar-hide">
 
 
-          <Link href="/Games/mines" legacyBehavior>
-          <Image src="/minegamelogo.png" alt="mines" width={149} height={216} className="rounded-2xl cursor-pointer" />
-          </Link>
+          <Image src="/minegamelogo.png" alt="mines" width={149} height={216} className="rounded-2xl cursor-pointer" onClick={() => {setjoinMinesModal(true)}} />
+          <JoinRoomModal joinMinesModal={joinMinesModal} setjoinMinesModal={setjoinMinesModal} />
           
           <Image src="/life-and-death-logo.png" alt="mines" width={149} height={216} className="rounded-2xl" />
           <Image src="/mental2-logo.png" alt="mines" width={149} height={216} className="rounded-2xl" />
           <Image src="/racing-logo.png" alt="mines" width={149} height={216} className="rounded-2xl"/>
-          <Image src="/olympus-logo.png" alt="mines" width={149} height={216} className="rounded-2xl"/>
+          <Image src="/olympus-logo.png" alt="mines" width={149} height={216} className="rounded-2xl" />
           <Image src="/duel-at-dawn-logo.png" alt="mines" width={149} height={216} className="rounded-2xl" />
           <Image src="/cs2-logo.png" alt="mines" width={149} height={216} className="rounded-2xl"/>
           <Image src="/sweet-bonanza-logo.png" alt="mines" width={149} height={216} className="rounded-2xl"/>
