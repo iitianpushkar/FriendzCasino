@@ -1,7 +1,18 @@
 [
     {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
       "anonymous": false,
       "inputs": [
+        {
+          "indexed": true,
+          "internalType": "string",
+          "name": "roomId",
+          "type": "string"
+        },
         {
           "indexed": true,
           "internalType": "address",
@@ -23,6 +34,12 @@
       "inputs": [
         {
           "indexed": true,
+          "internalType": "string",
+          "name": "roomId",
+          "type": "string"
+        },
+        {
+          "indexed": true,
           "internalType": "address",
           "name": "leader",
           "type": "address"
@@ -32,6 +49,18 @@
           "internalType": "uint8",
           "name": "mines",
           "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "gems",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "betAmount",
+          "type": "uint256"
         }
       ],
       "name": "GameStartedEvent",
@@ -41,10 +70,60 @@
       "anonymous": false,
       "inputs": [
         {
+          "indexed": true,
+          "internalType": "string",
+          "name": "roomId",
+          "type": "string"
+        },
+        {
           "indexed": false,
-          "internalType": "uint8[3]",
-          "name": "",
-          "type": "uint8[3]"
+          "internalType": "bytes32",
+          "name": "submittedHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "expectedHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "HashMismatchEvent",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "string",
+          "name": "roomId",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "committedHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "MineHashCommittedEvent",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "string",
+          "name": "roomId",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint8[]",
+          "name": "revealedMines",
+          "type": "uint8[]"
         }
       ],
       "name": "MinePositionEvent",
@@ -68,23 +147,54 @@
       "inputs": [
         {
           "indexed": true,
+          "internalType": "string",
+          "name": "roomId",
+          "type": "string"
+        },
+        {
+          "indexed": true,
           "internalType": "address",
           "name": "player",
           "type": "address"
         },
         {
           "indexed": false,
-          "internalType": "uint8",
-          "name": "cell",
-          "type": "uint8"
+          "internalType": "uint8[]",
+          "name": "chosenCells",
+          "type": "uint8[]"
         }
       ],
-      "name": "PlayerClickedEvent",
+      "name": "PlayerCellsEvent",
       "type": "event"
     },
     {
       "anonymous": false,
       "inputs": [
+        {
+          "indexed": true,
+          "internalType": "string",
+          "name": "roomId",
+          "type": "string"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "player",
+          "type": "address"
+        }
+      ],
+      "name": "PlayerJoinedEvent",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "string",
+          "name": "roomId",
+          "type": "string"
+        },
         {
           "indexed": true,
           "internalType": "address",
@@ -99,19 +209,6 @@
         }
       ],
       "name": "ScoreEvent",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "player",
-          "type": "address"
-        }
-      ],
-      "name": "WaitForOthersEvent",
       "type": "event"
     },
     {
@@ -148,12 +245,12 @@
           "type": "string"
         },
         {
-          "internalType": "uint8",
-          "name": "cellIndex",
-          "type": "uint8"
+          "internalType": "uint8[]",
+          "name": "chosenCells",
+          "type": "uint8[]"
         }
       ],
-      "name": "clickCell",
+      "name": "cellsChosen",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -164,6 +261,29 @@
           "internalType": "string",
           "name": "roomId",
           "type": "string"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "mineHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "commitMineHash",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "roomId",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "betAmount",
+          "type": "uint256"
         }
       ],
       "name": "createRoom",
@@ -181,14 +301,27 @@
       ],
       "name": "joinRoom",
       "outputs": [],
-      "stateMutability": "nonpayable",
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
         {
           "internalType": "string",
-          "name": "roomID",
+          "name": "roomId",
           "type": "string"
         }
       ],
@@ -216,6 +349,24 @@
         }
       ],
       "name": "startGame",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "roomId",
+          "type": "string"
+        },
+        {
+          "internalType": "uint8[]",
+          "name": "revealedMines",
+          "type": "uint8[]"
+        }
+      ],
+      "name": "submitMines",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
