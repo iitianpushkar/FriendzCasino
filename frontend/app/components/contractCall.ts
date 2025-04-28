@@ -9,19 +9,16 @@ import { useWriteContract } from "wagmi";
 interface ContractCallParams {
   functionName: string;
   args: any[];
-  value?: bigint; // optional ETH to send
+  value?: bigint;
 }
 
 export function useContractCall() {
-  const [success, setSuccess] = useState(false);
-  const [data, setData] = useState({});
 
-  const { writeContracts } = useWriteContracts({
+
+  const { writeContractsAsync } = useWriteContracts({
     mutation: {
-      onSuccess: (responseData) => {
-        setSuccess(true);
-        console.log("Transaction successful:", responseData);
-        setData(responseData);
+      onSuccess: () => {
+        console.log("Transaction successful");
       },
       onError: (error) => {
         console.error("Transaction failed:", error);
@@ -43,13 +40,13 @@ export function useContractCall() {
           args,
           value,
         });
-        console.log("Transaction with value successful:", tx);
-        setSuccess(true);
-        setData(tx);
+
+        return tx;
+        
       } else {
         // Otherwise, use paymaster-capable writeContracts
         if (capabilities) {
-          await writeContracts({
+         const tx = await writeContractsAsync({
             contracts: [
               {
                 address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`,
@@ -60,15 +57,16 @@ export function useContractCall() {
             ],
             capabilities,
           });
+
+          return tx;
         } else {
           console.error("Capabilities not available");
         }
       }
     } catch (error) {
       console.error("Transaction error:", error);
-      setSuccess(false);
     }
   };
 
-  return { callContract, success, data };
+  return { callContract };
 }

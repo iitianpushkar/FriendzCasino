@@ -17,38 +17,27 @@ function JoinRoomModal({joinMinesModal,setjoinMinesModal}: RoomModalProps) {
 
   const [roomId, setRoomId] = useState("");
   const [betAmount, setBetAmount] = useState("");
-  const { callContract,success, data } = useContractCall();
-
-  const [isSuccess, setIsSuccess] = useState(success);
-  const [txData, setTxData] = useState(data);
-
-    useEffect(() => {
-      if(success) {
-        setIsSuccess(success);
-        setTxData(data);
-
-        router.push(`/Games/mines/${roomId}`);
-
-        setjoinMinesModal(false);
-        setRoomId("");
-        setBetAmount("");
-
-        console.log(`Room joined successfully at ${roomId} with bet amount ${betAmount}`);
-      }
-      else{
-        setIsSuccess(false);
-        setTxData({});
-      }
-    },[success, data]);
+  const { callContract} = useContractCall();
 
   
   const joinRoom = async () => {
     try {
-        await callContract({
+        const tx = await callContract({
         functionName: "joinRoom",
         args: [roomId],
         value: parseEther(betAmount),
       });
+
+      if(tx){
+        console.log(`Room joined successfully at ${roomId} with bet amount ${betAmount}`);
+        setjoinMinesModal(false);
+        setRoomId("");
+        setBetAmount("");
+        router.push(`/Games/mines/${roomId}`);
+      }
+      else{
+        console.log("failed to join room");
+      }
     } catch (error) {
       console.error("Error joining room:", error);
     }

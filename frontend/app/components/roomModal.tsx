@@ -11,36 +11,27 @@ interface RoomModalProps {
 
   function RoomModal({ showModal, setShowModal }: RoomModalProps) {
 
-    const [roomId, setRoomId] = React.useState("");
-    const [betAmount, setBetAmount] = React.useState("");
-    const { callContract,success,data } = useContractCall();
+    const [roomId, setRoomId] = useState("");
+    const [betAmount, setBetAmount] = useState("");
+    const { callContract} = useContractCall();
 
-    const [isSuccess, setIsSuccess] = useState(success);
-    const [txData, setTxData] = useState(data);
-
-    useEffect(() => {
-      if(success) {
-        setIsSuccess(success);
-        setTxData(data);
-        setShowModal(false);
-        setRoomId("");
-        setBetAmount("");
-        console.log(`Room created successfully at ${roomId} with bet amount ${betAmount}`);
-      }
-      else{
-        setIsSuccess(false);
-        setTxData({});
-      }
-    },[success, data]);
 
     const createRoom = async () => {
       try {
-          await callContract({
+          const tx = await callContract({
           functionName: "createRoom",
           args: [roomId, parseEther(betAmount)],
+           });
 
-
-        });
+           if(tx){
+            console.log(`Room created successfully at ${roomId} with bet amount ${betAmount}`);
+            setShowModal(false);
+            setRoomId("");
+            setBetAmount("");
+           }
+           else{
+            console.log("failed to create room");
+           }
       } catch (error) {
         console.error("Error creating room:", error);
       }

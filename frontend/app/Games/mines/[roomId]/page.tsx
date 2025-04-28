@@ -5,6 +5,7 @@ import Navbar from "@/app/components/navbar";
 import HomeSidebar from "@/app/components/homeSidebar";
 import {  useParams } from "next/navigation";
 import Image from "next/image";
+import { useContractCall } from "@/app/components/contractCall";
 
 export default function RoomMines() {
   const [numMines, setNumMines] = useState("");
@@ -12,13 +13,32 @@ export default function RoomMines() {
   const [revealedCells, setRevealedCells] = useState<number[]>([]);
   const [betPlaced, setBetPlaced] = useState(false);
   const [message, setMessage] = useState("");
+  const [betAmount, setBetAmount] = useState(0);
 
   const params= useParams();
   const {roomId} = params as {roomId: string};
-  console.log("Room ID:", roomId);
+
+  const { callContract } = useContractCall();
   
 
   const handleBet = async () => {
+
+    if (!betAmount || !numMines) {
+      setMessage("Please enter a valid bet amount and number of mines.");
+      return;
+    }
+
+    const mines = parseInt(numMines, 10);
+    if (mines < 3 || mines > 24) {
+      setMessage("Number of mines must be between 3 and 24.");
+      return;
+    }
+
+
+
+
+
+    
 
   };
 
@@ -56,6 +76,8 @@ export default function RoomMines() {
               type="number"
               className="w-[183px] h-[40px] bg-[#0f212e] rounded-sm p-2"
               placeholder="0.00"
+              onChange={(e) => setBetAmount(Number(e.target.value))}
+              
             />
             <div className="flex p-2">
               <div className="w-[43px] h-[40px] text-center text-base">1/2</div>
@@ -65,7 +87,7 @@ export default function RoomMines() {
           </div>
         </div>
 
-        <div className="mt-4">
+        <div>
           <div className="mines-number text-[#b1bad3]">Mines</div>
           <input
             type="number"
