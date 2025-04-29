@@ -3,6 +3,7 @@
 import React,{ useState} from 'react'
 import { useContractCall } from './contractCall';
 import {parseEther } from 'viem';
+import {contract} from "../lib/contract";
 
 interface RoomModalProps {
     showModal: boolean;
@@ -14,6 +15,11 @@ interface RoomModalProps {
     const [roomId, setRoomId] = useState("");
     const [betAmount, setBetAmount] = useState("");
     const { callContract} = useContractCall();
+
+
+    contract.on("RoomCreatedEvent", (roomId, leader, betAmount) => {
+      console.log(`Room created with ID: ${roomId}, leader ${leader} and bet amount: ${betAmount}`);
+    });
 
     const createRoom = async () => {
       try {

@@ -11,6 +11,8 @@ app.use(express.json());
 // Connect to blockchain
 const provider = new ethers.WebSocketProvider(process.env.RPC_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+ 
+console.log("wallet:",wallet)
 
 // Load contract ABI
 const contractABI = require('./abi.json'); 

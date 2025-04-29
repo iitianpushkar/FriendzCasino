@@ -1,18 +1,7 @@
-import {
-    createThirdwebClient,
-    getContract,
-  } from "thirdweb";
-  import { defineChain } from "thirdweb/chains";
-  
-  // create the client with your clientId, or secretKey if in a server environment
-  const client = createThirdwebClient({
-    clientId: process.env.NEXT_PUBLIC_CLIENT_ID as string,
-  });
-  
-  // connect to your contract
-  export const contract = getContract({
-    client,
-    chain: defineChain(84532),
-    address: "0xCA19409a1B7B35780AF2555A37d99fe10D609db0",
-  });
-  
+import {ethers} from "ethers";
+import abi from "./abi.json";
+
+const provider = new ethers.WebSocketProvider(process.env.NEXT_PUBLIC_ALCHEMY_RPC_URL as string); 
+const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as string;
+export const contract = new ethers.Contract(contractAddress, abi, provider);
+

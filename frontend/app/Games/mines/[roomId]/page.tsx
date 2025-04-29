@@ -9,10 +9,13 @@ import { parseEther, formatEther} from "viem";
 import {useAccount } from "wagmi";
 import {abi} from "@/app/abi";
 import { usePollContract } from "@/app/lib/usePollContract";
+import {contract} from "@/app/lib/contract";
+import Image from "next/image";
 
 type RoomData = [string, boolean, number, number, bigint, boolean, boolean, string, bigint];
 
 export default function RoomMines() {
+  const [minePositions, setMinePositions] = useState<number[]>([]);
   const [numMines, setNumMines] = useState(0);
   const [betPlaced, setBetPlaced] = useState(false);
   const [message, setMessage] = useState("");
@@ -99,6 +102,25 @@ export default function RoomMines() {
     },[account,roomData]);
 
   
+    contract.on("GameOverEvent", (room, winners, score) => {
+      if(room==roomId){
+        setGameStarted(false);
+        setBetPlaced(false);
+        setCellsChosen([]);
+        setMinePositions([]);
+      console.log(`Game over! Room ID: ${room}, Winner: ${winners},Score: ${score}`);
+      window.alert(`Game over! Room ID: ${room}, Winner: ${winners},Score: ${score}`);
+      }
+    });
+
+
+
+    contract.on("MinePositionEvent", (room, minePositions) => {
+      if(room==roomId){
+      console.log(`Mine positions for room ${room}: ${minePositions}`);
+      setMinePositions(minePositions);
+      }
+    });
   
   const handleBet = async () => {
 
@@ -191,9 +213,22 @@ export default function RoomMines() {
   }
   
 
-  const renderCellContent = () => null;
+  const renderCellContent = (idx:number) =>
+  {
+    if(minePositions.length == 0){
+      return null;
+    }
+    else{
 
-  
+    if (cellsChosen.includes(idx) && !minePositions.includes(idx+1)) {
+      return <Image src="/gem.svg" alt="gem here" width={111} height={101} />;
+    }
+    if (cellsChosen.includes(idx) && minePositions.includes(idx+1)) {
+      return <Image src="/mine.svg" alt="mine here" width={111} height={101} />;
+    }
+  }
+    return null;
+  }
   return (
     <>
       <Navbar />
@@ -271,7 +306,7 @@ export default function RoomMines() {
                   ${isChosen ? 'bg-red-600' : 'bg-[#1a2c38]'}`}
                   onClick={() => handleCellClick(idx)}
                 >
-                  {renderCellContent()}
+                  {renderCellContent(idx)}
                 </div>
               )})}
             </div>

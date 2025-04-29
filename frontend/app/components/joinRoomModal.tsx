@@ -56,7 +56,7 @@ function JoinRoomModal({joinMinesModal,setjoinMinesModal}: RoomModalProps) {
       </div>
       <div className="flex justify-between">
         <button type="button" className="bg-blue-600 p-2 rounded hover:bg-blue-700" onClick={joinRoom}>
-          Create
+          Join
         </button>
         <button
           type="button"
