@@ -1,3 +1,5 @@
+"use client";
+
 import { useAccount } from "wagmi";
 import { useCapabilities } from "wagmi/experimental";
 import { useMemo } from "react";
