@@ -103,8 +103,7 @@ export default function RoomMines() {
 
     },[account,roomData]);
 
-      if (contract) {
-        contract.on("GameOverEvent", (room, winners, score) => {
+        contract?.on("GameOverEvent", (room, winners, score) => {
           if(room==roomId){
             setGameStarted(false);
             setBetPlaced(false);
@@ -116,14 +115,12 @@ export default function RoomMines() {
     
     
     
-        contract.on("MinePositionEvent", (room, minePositions) => {
+        contract?.on("MinePositionEvent", (room, minePositions) => {
           if(room==roomId){
           console.log(`Mine positions for room ${room}: ${minePositions}`);
           setMinePositions(minePositions);
           }
         });
-
-      }
   
   const handleBet = async () => {
 

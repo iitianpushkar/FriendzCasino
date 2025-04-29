@@ -18,12 +18,10 @@ interface RoomModalProps {
 
     const contract = useContract();
 
-      if(contract){
-        contract.on("RoomCreatedEvent", (roomId, leader, betAmount) => {
+  
+        contract?.on("RoomCreatedEvent", (roomId, leader, betAmount) => {
           console.log(`Room created with ID: ${roomId}, leader ${leader} and bet amount: ${betAmount}`);
         });
-
-      }
 
     const createRoom = async () => {
       try {
