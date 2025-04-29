@@ -16,13 +16,6 @@ interface RoomModalProps {
     const [betAmount, setBetAmount] = useState("");
     const { callContract} = useContractCall();
 
-    const contract = useContract();
-
-  
-        contract?.on("RoomCreatedEvent", (roomId, leader, betAmount) => {
-          console.log(`Room created with ID: ${roomId}, leader ${leader} and bet amount: ${betAmount}`);
-        });
-
     const createRoom = async () => {
       try {
           const tx = await callContract({

@@ -33,7 +33,7 @@ export default function RoomMines() {
  
   const { callContract } = useContractCall();
 
-  const contract = useContract();
+    const contract = useContract();
 
   const account = useAccount();
 
