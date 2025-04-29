@@ -9,7 +9,7 @@ import { parseEther, formatEther} from "viem";
 import {useAccount } from "wagmi";
 import {abi} from "@/app/abi";
 import { usePollContract } from "@/app/lib/usePollContract";
-import {contract} from "@/app/lib/contract";
+import {useContract} from "@/app/lib/contract";
 import Image from "next/image";
 
 type RoomData = [string, boolean, number, number, bigint, boolean, boolean, string, bigint];
@@ -32,6 +32,8 @@ export default function RoomMines() {
   const {roomId} = params as {roomId: string};
  
   const { callContract } = useContractCall();
+
+  const contract = useContract();
 
   const account = useAccount();
 
@@ -101,26 +103,28 @@ export default function RoomMines() {
 
     },[account,roomData]);
 
-  
-    contract.on("GameOverEvent", (room, winners, score) => {
-      if(room==roomId){
-        setGameStarted(false);
-        setBetPlaced(false);
-        setCellsChosen([]);
-        setMinePositions([]);
-      console.log(`Game over! Room ID: ${room}, Winner: ${winners},Score: ${score}`);
-      window.alert(`Game over! Room ID: ${room}, Winner: ${winners},Score: ${score}`);
+      if (contract) {
+        contract.on("GameOverEvent", (room, winners, score) => {
+          if(room==roomId){
+            setGameStarted(false);
+            setBetPlaced(false);
+            setCellsChosen([]);
+            setMinePositions([]);
+          console.log(`Game over! Room ID: ${room}, Winner: ${winners},Score: ${score}`);
+          window.alert(`Game over! Room ID: ${room}, Winner: ${winners},Score: ${score}`);
+          }
+        });
+    
+    
+    
+        contract.on("MinePositionEvent", (room, minePositions) => {
+          if(room==roomId){
+          console.log(`Mine positions for room ${room}: ${minePositions}`);
+          setMinePositions(minePositions);
+          }
+        });
+
       }
-    });
-
-
-
-    contract.on("MinePositionEvent", (room, minePositions) => {
-      if(room==roomId){
-      console.log(`Mine positions for room ${room}: ${minePositions}`);
-      setMinePositions(minePositions);
-      }
-    });
   
   const handleBet = async () => {
 

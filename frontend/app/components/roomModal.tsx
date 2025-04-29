@@ -1,9 +1,9 @@
 "use client";
 
-import React,{ useState} from 'react'
+import React,{ useEffect, useState} from 'react'
 import { useContractCall } from './contractCall';
 import {parseEther } from 'viem';
-import {contract} from "../lib/contract";
+import {useContract} from "../lib/contract";
 
 interface RoomModalProps {
     showModal: boolean;
@@ -16,10 +16,14 @@ interface RoomModalProps {
     const [betAmount, setBetAmount] = useState("");
     const { callContract} = useContractCall();
 
+    const contract = useContract();
 
-    contract.on("RoomCreatedEvent", (roomId, leader, betAmount) => {
-      console.log(`Room created with ID: ${roomId}, leader ${leader} and bet amount: ${betAmount}`);
-    });
+      if(contract){
+        contract.on("RoomCreatedEvent", (roomId, leader, betAmount) => {
+          console.log(`Room created with ID: ${roomId}, leader ${leader} and bet amount: ${betAmount}`);
+        });
+
+      }
 
     const createRoom = async () => {
       try {
