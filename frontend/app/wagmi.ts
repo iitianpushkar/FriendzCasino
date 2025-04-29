@@ -12,7 +12,7 @@ export const config = createConfig({
     }),
   ],
   transports: {
-    [baseSepolia.id]: http(process.env.RPC_URL),
+    [baseSepolia.id]: http(process.env.NEXT_PUBLIC_RPC_URL),
   },
 });
 
