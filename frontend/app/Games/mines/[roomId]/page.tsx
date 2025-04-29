@@ -111,7 +111,6 @@ export default function RoomMines() {
             setCellsChosen([]);
             setMinePositions([]);
           console.log(`Game over! Room ID: ${room}, Winner: ${winners},Score: ${score}`);
-          window.alert(`Game over! Room ID: ${room}, Winner: ${winners},Score: ${score}`);
           }
         });
     

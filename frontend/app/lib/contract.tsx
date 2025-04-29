@@ -14,11 +14,6 @@ export function useContract() {
     const provider = new ethers.WebSocketProvider(alchemyWss);
     const instance = new ethers.Contract(contractAddress, abi, provider);
     setContract(instance);
-
-    return () => {
-      provider.destroy?.();
-      instance.removeAllListeners();
-    };
   }, []);
 
   return contract;
