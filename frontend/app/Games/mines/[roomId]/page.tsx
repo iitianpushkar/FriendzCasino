@@ -10,7 +10,7 @@ import {useAccount } from "wagmi";
 import {abi} from "@/app/abi";
 import { usePollContract } from "@/app/lib/usePollContract";
 
-
+type RoomData = [string, boolean, number, number, bigint, boolean, boolean, string, bigint];
 
 export default function RoomMines() {
   const [numMines, setNumMines] = useState(0);
@@ -18,9 +18,10 @@ export default function RoomMines() {
   const [message, setMessage] = useState("");
   const [betAmount, setBetAmount] = useState(0);
   const [gems, setGems] = useState(0);
-  const [roomData, setRoomData] = useState<any>(null);
-  const [playersJoined, setPlayersJoined] = useState<any>(null);
-  const [playersBetted, setPlayersBetted] = useState<any>(null);
+  const [roomData, setRoomData] = useState<RoomData | null>(null);
+  const [playersJoined, setPlayersJoined] = useState<string[] | null>(null);
+  const [playersBetted, setPlayersBetted] = useState<string[] | null>(null);
+
   const [gameStarted, setGameStarted] = useState(false);
   const [cellsChosen, setCellsChosen] = useState<number[]>([]);
 
@@ -190,9 +191,7 @@ export default function RoomMines() {
   }
   
 
-  const renderCellContent = (idx: number) => {
-    return null;
-  };
+  const renderCellContent = () => null;
 
   
   return (
@@ -272,7 +271,7 @@ export default function RoomMines() {
                   ${isChosen ? 'bg-red-600' : 'bg-[#1a2c38]'}`}
                   onClick={() => handleCellClick(idx)}
                 >
-                  {renderCellContent(idx)}
+                  {renderCellContent()}
                 </div>
               )})}
             </div>

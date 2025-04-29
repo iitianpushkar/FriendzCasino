@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useState } from "react";
 import {BlackCreateWalletButton} from "./BlackCreateWalletButton"
 
 export default function Navbar(){

@@ -7,7 +7,7 @@ import { useWriteContract } from "wagmi";
 
 interface ContractCallParams {
   functionName: string;
-  args: any[];
+  args: unknown[];
   value?: bigint;
 }
 

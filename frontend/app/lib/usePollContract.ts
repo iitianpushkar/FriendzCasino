@@ -8,11 +8,11 @@ type UsePollContractOptions = {
   address: `0x${string}`;
   abi: Abi;
   functionName: string;
-  args?: any[];
-  pollInterval?: number; // default 5000ms
+  args?: readonly unknown[];
+  pollInterval?: number;
 };
 
-export function usePollContract<TData = any>({
+export function usePollContract<TData = unknown>({
   address,
   abi,
   functionName,
@@ -32,10 +32,10 @@ export function usePollContract<TData = any>({
     args,
   }) as {
     data: TData;
-    refetch: () => Promise<any>;
+    refetch: () => Promise<{ data: TData | undefined }>;
     isLoading: boolean;
     isError: boolean;
-    error: any;
+    error: unknown;
   };
 
   useEffect(() => {

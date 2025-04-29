@@ -7,17 +7,21 @@ import { useAccount } from "wagmi";
 
 const GRADIENT_BORDER_WIDTH = 2;
 
-const buttonStyles = {
+const buttonStyles: React.CSSProperties = {
   background: "transparent",
   border: "1px solid transparent",
-  boxSizing: "border-box",
+  boxSizing: "border-box" as const,
 };
 
-const contentWrapperStyle = {
-  position: "relative",
+const contentWrapperStyle: React.CSSProperties = {
+  position: "relative" as const,
 };
 
-function Gradient({ children, style, isAnimationDisabled = false }) {
+function Gradient({ children, style, isAnimationDisabled = false }: { 
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+  isAnimationDisabled?: boolean;
+}) {
   const [isAnimating, setIsAnimating] = useState(false);
   const gradientStyle = useMemo(() => {
     const rotate = isAnimating ? "720deg" : "0deg";
@@ -65,15 +69,15 @@ export function BlackCreateWalletButton({ height = 44, width = 180 }) {
   const styles = useMemo(
     () => ({
       gradientContainer: {
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
+        display: "flex" as const,
+        justifyContent: "center" as const,
+        alignItems: "center" as const,
         backgroundColor: "black",
         borderRadius: buttonHeight / 2,
         height: buttonHeight,
         width: buttonWidth,
-        boxSizing: "border-box",
-        overflow: "hidden",
+        boxSizing: "border-box" as const,
+        overflow: "hidden" as const,
       },
       gradient: {
         background:
@@ -83,7 +87,7 @@ export function BlackCreateWalletButton({ height = 44, width = 180 }) {
         left: -GRADIENT_BORDER_WIDTH,
         width: gradientDiameter,
         height: gradientDiameter,
-      },
+      } as  React.CSSProperties,
       buttonBody: {
         display: "flex",
         justifyContent: "center",
@@ -98,7 +102,7 @@ export function BlackCreateWalletButton({ height = 44, width = 180 }) {
         borderRadius: buttonHeight / 2,
         position: "relative",
         paddingRight: 10,
-      },
+      } as React.CSSProperties,
     }),
     [buttonHeight, buttonWidth, gradientDiameter]
   );
