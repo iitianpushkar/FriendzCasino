@@ -3,7 +3,7 @@
 import React,{useState} from 'react'
 import { useContractCall } from './contractCall';
 import {parseEther } from 'viem';
-import {useContract} from "../lib/contract";
+
 
 interface RoomModalProps {
     showModal: boolean;
