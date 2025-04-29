@@ -1,20 +1,19 @@
 "use client";
 
-import React,{ useEffect, useState} from 'react'
+import React,{ useState} from 'react'
 import { useContractCall } from './contractCall';
-import { parseEther } from 'viem';
+import {parseEther } from 'viem';
 
 interface RoomModalProps {
     showModal: boolean;
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
   }
 
-  function RoomModal({ showModal, setShowModal }: RoomModalProps) {
+    function RoomModal({ showModal, setShowModal }: RoomModalProps) {
 
     const [roomId, setRoomId] = useState("");
     const [betAmount, setBetAmount] = useState("");
     const { callContract} = useContractCall();
-
 
     const createRoom = async () => {
       try {

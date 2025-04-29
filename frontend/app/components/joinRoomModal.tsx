@@ -1,9 +1,9 @@
 "use client";
 
 import { useContractCall } from "./contractCall";
-import { useState,useEffect} from "react";
+import { useState} from "react";
 import { useRouter } from "next/navigation";
-import { parseEther } from "viem";
+
 
 interface RoomModalProps {
     joinMinesModal: boolean;
@@ -16,7 +16,6 @@ function JoinRoomModal({joinMinesModal,setjoinMinesModal}: RoomModalProps) {
     const router = useRouter();
 
   const [roomId, setRoomId] = useState("");
-  const [betAmount, setBetAmount] = useState("");
   const { callContract} = useContractCall();
 
   
@@ -25,14 +24,13 @@ function JoinRoomModal({joinMinesModal,setjoinMinesModal}: RoomModalProps) {
         const tx = await callContract({
         functionName: "joinRoom",
         args: [roomId],
-        value: parseEther(betAmount),
       });
 
       if(tx){
-        console.log(`Room joined successfully at ${roomId} with bet amount ${betAmount}`);
+        console.log(`Room joined successfully at ${roomId}`);
         setjoinMinesModal(false);
         setRoomId("");
-        setBetAmount("");
+      
         router.push(`/Games/mines/${roomId}`);
       }
       else{
@@ -55,7 +53,6 @@ function JoinRoomModal({joinMinesModal,setjoinMinesModal}: RoomModalProps) {
       <h2 className="text-xl font-bold mb-4 text-center">Join Room</h2>
       <div className="flex flex-col gap-4">
       <input className='border border-amber-50 w-full mb-4' placeholder='Enter room name' onChange={(e)=>setRoomId(e.target.value)} />
-      <input className='border border-amber-50 w-full mb-4' placeholder='Enter bet amount' type="number" onChange={(e)=>setBetAmount(e.target.value)} />
       </div>
       <div className="flex justify-between">
         <button type="button" className="bg-blue-600 p-2 rounded hover:bg-blue-700" onClick={joinRoom}>

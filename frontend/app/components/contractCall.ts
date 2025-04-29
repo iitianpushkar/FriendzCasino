@@ -1,7 +1,6 @@
 "use client";
 
 import { useWriteContracts } from "wagmi/experimental";
-import { useState } from "react";
 import { useContractCapabilities } from "./capabilities";
 import { abi } from "../abi";
 import { useWriteContract } from "wagmi";

@@ -2,11 +2,6 @@ import { Abi } from "viem";
 
 export const abi: Abi = [
   {
-    "inputs": [],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
     "anonymous": false,
     "inputs": [
       {
@@ -18,8 +13,27 @@ export const abi: Abi = [
       {
         "indexed": true,
         "internalType": "address",
-        "name": "winner",
+        "name": "player",
         "type": "address"
+      }
+    ],
+    "name": "BetEvent",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "roomId",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "address[]",
+        "name": "winners",
+        "type": "address[]"
       },
       {
         "indexed": false,
@@ -61,7 +75,7 @@ export const abi: Abi = [
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "betAmount",
+        "name": "totalBet",
         "type": "uint256"
       }
     ],
@@ -270,6 +284,19 @@ export const abi: Abi = [
         "internalType": "string",
         "name": "roomId",
         "type": "string"
+      }
+    ],
+    "name": "bet",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "roomId",
+        "type": "string"
       },
       {
         "internalType": "uint8[]",
@@ -326,9 +353,47 @@ export const abi: Abi = [
         "type": "string"
       }
     ],
+    "name": "getActivePlayers",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "roomId",
+        "type": "string"
+      }
+    ],
+    "name": "getJoinedPlayers",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "roomId",
+        "type": "string"
+      }
+    ],
     "name": "joinRoom",
     "outputs": [],
-    "stateMutability": "payable",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -355,6 +420,65 @@ export const abi: Abi = [
     "name": "revealMines",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "name": "rooms",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "leader",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "exists",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint8",
+        "name": "mines",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint8",
+        "name": "gems",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "betAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "started",
+        "type": "bool"
+      },
+      {
+        "internalType": "bool",
+        "name": "minesRevealed",
+        "type": "bool"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "committedMineHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalBet",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
