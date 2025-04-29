@@ -14,7 +14,6 @@ const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
 
 // Load contract ABI
 const contractABI = require('./abi.json'); 
-const submitMines = require('./minesweeper/submitMines.js');
 const contractAddress = process.env.CONTRACT_ADDRESS;
 const contract = new ethers.Contract(contractAddress, contractABI, wallet);
 
@@ -33,7 +32,7 @@ function listenToEvents() {
         console.log(`Mines for room ${room}:`, mines);
 
         submitMines(contract, room, mines);
-           // Remove the mines from the map after submission
+          
         delete roomMinesMap[room];
       } else {
         console.log(`No mines found for room ${room}`);
