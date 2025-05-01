@@ -127,7 +127,7 @@ export default function RoomMines() {
           }
         });
 
-        contract?.on('GameStartedEvent', (room,leader,mines,gems,bet) => {
+        contract?.on('GameStartedEvent', (room) => {
           if(room==roomId){
          // console.log(`🏆 Game started by leader ${leader}`);
           setMessage("Game started!");
