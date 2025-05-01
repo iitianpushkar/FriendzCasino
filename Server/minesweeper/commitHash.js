@@ -5,9 +5,9 @@ const roomMinesMap = {};
 module.exports = async function commitHash(contract, room, mines) {
     const positions = [];
     while (positions.length < mines) {
-        const rand = Math.floor(Math.random() * 25); 
-        if (!positions.includes(rand+1)) {
-            positions.push(rand + 1);
+        const rand = Math.floor(Math.random() * 25); // 0-24
+        if (!positions.includes(rand)) {
+            positions.push(rand);
         }
         else{
             continue; 

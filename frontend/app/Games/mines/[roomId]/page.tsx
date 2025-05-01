@@ -28,6 +28,8 @@ export default function RoomMines() {
   const [gameStarted, setGameStarted] = useState(false);
   const [cellsChosen, setCellsChosen] = useState<number[]>([]);
 
+  const [showModal, setShowModal] = useState(false);
+
   const params= useParams();
   const {roomId} = params as {roomId: string};
  
@@ -107,9 +109,12 @@ export default function RoomMines() {
           if(room==roomId){
             setGameStarted(false);
             setBetPlaced(false);
-            setCellsChosen([]);
-            setMinePositions([]);
+            setPlayersBetted([]);
+            setNumMines(0);
+            setGems(0);
           console.log(`Game over! Room ID: ${room}, Winner: ${winners},Score: ${score}`);
+          setMessage("Game Over! Winner: " + winners + " Score: " + score);
+          setShowModal(true);
           }
         });
     
@@ -119,6 +124,20 @@ export default function RoomMines() {
           if(room==roomId){
           console.log(`Mine positions for room ${room}: ${minePositions}`);
           setMinePositions(minePositions);
+          }
+        });
+
+        contract?.on('GameStartedEvent', (room,leader,mines,gems,bet) => {
+          if(room==roomId){
+         // console.log(`🏆 Game started by leader ${leader}`);
+          setMessage("Game started!");
+          }
+          }
+        );
+
+        contract?.on('MineRevealEvent', (room) => {
+          if(room==roomId){
+          setMessage("Mine revealing soon!");
           }
         });
   
@@ -153,7 +172,7 @@ export default function RoomMines() {
       });
   
       if(tx){
-        setMessage("Game started successfully!");
+        return;
       }
       else{
         setMessage("Failed to start game.");
@@ -177,11 +196,10 @@ export default function RoomMines() {
   }
 
   const handleSubmitCells = async () => {
-    const cellsToSubmit = cellsChosen.map((cell) => cell+1);
     try {
       const tx = await callContract({
         functionName: "cellsChosen",
-        args: [roomId, cellsToSubmit],
+        args: [roomId, cellsChosen],
       });
       if(tx){
         setMessage("Cells submitted successfully!");
@@ -201,7 +219,7 @@ export default function RoomMines() {
       });
   
       if (tx) {
-        setMessage("Mines revealing soon!");
+        return;
       } else {
         setMessage("Failed to reveal mines.");
       }
@@ -220,10 +238,10 @@ export default function RoomMines() {
     }
     else{
 
-    if (cellsChosen.includes(idx) && !minePositions.includes(idx+1)) {
+    if (!minePositions.includes(idx)) {
       return <Image src="/gem.svg" alt="gem here" width={111} height={101} />;
     }
-    if (cellsChosen.includes(idx) && minePositions.includes(idx+1)) {
+    if (minePositions.includes(idx)) {
       return <Image src="/mine.svg" alt="mine here" width={111} height={101} />;
     }
   }
@@ -272,7 +290,7 @@ export default function RoomMines() {
             </div>
             <div className="flex gap-4">
             <button className="bg-amber-700 w-[120px] rounded-2xl shadow shadow-gray-950" onClick={handleSubmitCells}> 3. Submit Cells</button>
-            <button className="bg-fuchsia-800 w-[120px] rounded-2xl shadow shadow-neutral-200" onClick={handleReveal}> 3. Reveal Mines</button>
+            <button className="bg-fuchsia-800 w-[120px] rounded-2xl shadow shadow-neutral-200" onClick={handleReveal}> 4. Reveal Mines</button>
             </div>
             </div>
 
@@ -289,8 +307,8 @@ export default function RoomMines() {
             <div className="bet-amount text-white text-sm">Players Joined : {playersJoined ? playersJoined.length : "0"}</div>
             <div className="bet-amount text-white text-sm">Players Betted : {playersBetted ? playersBetted.length : "0"}</div>
             <div className="bet-amount text-white text-sm">Total Bet : {roomData ? formatEther(roomData[8]) : "0"}</div>
-            <div className="bet-amount text-white text-sm">Gems : {roomData && roomData[3] ? roomData[3]: "Game not started yet"}</div>
-            <div className="bet-amount text-white text-sm">Mines : {roomData && roomData[2] ? roomData[2]: "Game not started yet"}</div>
+            <div className="bet-amount text-white text-sm">Gems : {gems ? gems: "Game not started yet"}</div>
+            <div className="bet-amount text-white text-sm">Mines : {numMines? numMines: "Game not started yet"}</div>
           </div>
 
           {/* Game Frame */}
@@ -313,6 +331,21 @@ export default function RoomMines() {
           </div>
         </div>
       </div>
+
+      {showModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+               <div className="absolute inset-0  backdrop-blur-[1px]"></div>
+               <div className="relative bg-[#1a2338] p-6 rounded-xl w-full max-w-md text-white shadow-2xl z-10">
+                  <h2 className="text-lg font-bold">{message}</h2>
+                   <button onClick={() =>{
+                    setShowModal(false);
+                    setMessage("");
+                    setMinePositions([]);
+                    setCellsChosen([]);
+                    }} className="mt-4 bg-blue-500 text-white px-4 py-2 rounded">OK</button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
