@@ -39,6 +39,9 @@ export default function RoomMines() {
 
   const account = useAccount();
 
+  const mineSet = new Set(minePositions.map((pos) => Number(pos)));
+
+
   const { data: roomdata } = usePollContract<[string, boolean, number, number, bigint, boolean, boolean, string, bigint]>({
     address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`,
     abi,
@@ -230,6 +233,8 @@ export default function RoomMines() {
     }
   }
   
+  console.log("Mine Positions:", minePositions);
+  console.log("Cells Chosen:", cellsChosen);
 
   const renderCellContent = (idx:number) =>
   {
@@ -237,15 +242,17 @@ export default function RoomMines() {
       return null;
     }
     else{
-
-    if (!minePositions.includes(idx)) {
-      return <Image src="/gem.svg" alt="gem here" width={111} height={101} />;
-    }
-    if (minePositions.includes(idx)) {
-      return <Image src="/mine.svg" alt="mine here" width={111} height={101} />;
-    }
+      const isMine = mineSet.has(idx);
+        return (
+          <Image
+            src={isMine ? "/mine.svg" : "/gem.svg"}
+            alt={isMine ? "mine" : "gem"}
+            width={111}
+            height={101}
+          />
+        );
+      
   }
-    return null;
   }
   return (
     <>
