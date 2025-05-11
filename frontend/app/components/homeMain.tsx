@@ -17,8 +17,8 @@ export default function HomeMain (){
         <div className="vip-card bg-[url('/bg.png')] bg-cover w-full h-[320px] flex items-center justify-end">
 
         <div className="w-[365px] h-[196px] rounded-2xl border border-amber-600 mr-12 flex flex-col justify-center items-center">
-          <div className="text-center font-bold h-[40px]">Welcome to WinOrLunn.com</div>
-          <div className="text-center font-bold ml-32">....Win Chahiye ya Lunn </div>
+          <div className="text-center font-bold h-[40px]">Welcome to FriendzCasino</div>
+          <div className="text-center font-bold ml-32">Gamble with your friends. </div>
           
         </div>
 
