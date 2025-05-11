@@ -1,43 +1,69 @@
 "use client";
 
-import React,{useState} from 'react'
-import { useContractCall } from './contractCall';
-import {parseEther } from 'viem';
-
+import React from 'react'
+import { useProgram } from '../lib/ProgramProvider';
+import { PublicKey,SystemProgram ,LAMPORTS_PER_SOL} from '@solana/web3.js';
+import { useAnchorWallet } from '@solana/wallet-adapter-react';
+import {BN} from "@project-serum/anchor";
 
 interface RoomModalProps {
     showModal: boolean;
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
   }
 
-    function RoomModal({ showModal, setShowModal }: RoomModalProps) {
+  function RoomModal({ showModal, setShowModal }: RoomModalProps) {
 
-    const [roomId, setRoomId] = useState("");
-    const [betAmount, setBetAmount] = useState("");
-    const { callContract} = useContractCall();
+    const { program } = useProgram();
+    const wallet = useAnchorWallet();
 
-    const createRoom = async () => {
-      try {
-          const tx = await callContract({
-          functionName: "createRoom",
-          args: [roomId, parseEther(betAmount)],
-           });
+    const [roomId, setRoomId] = React.useState("");
+    const [betAmount, setBetAmount] = React.useState(0);
 
-           if(tx){
-            console.log(`Room created successfully at ${roomId} with bet amount ${betAmount}`);
-            setShowModal(false);
-            setRoomId("");
-            setBetAmount("");
-           }
-           else{
-            console.log("failed to create room");
-           }
-      } catch (error) {
-        console.error("Error creating room:", error);
+
+
+
+    const createRoom = async ()=>{
+
+      if (!program || !wallet) {
+        console.log("Program or wallet not found");
+        return;
       }
-    };
+
+      console.log("Creating room");
+      console.log("Program from roommodal: ", program);
+      console.log("Public key from roommodal: ", wallet.publicKey);
+
+      const publicKey = wallet.publicKey;
+
+      try {
+
+      const [pda, bump] = PublicKey.findProgramAddressSync(
+        [Buffer.from("room"), Buffer.from(roomId)],
+        program.programId
+      );
+      console.log("PDA: ", pda.toString());
+      console.log("Bump: ", bump);
+
+      const tx = await program.methods
+        .createRoom(roomId, new BN(betAmount*LAMPORTS_PER_SOL))
+        .accounts({
+          room: pda,
+          user: publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+
+      console.log("Transaction: ", tx);
+      console.log("Room created successfully");
+      setShowModal(false);
+      }
+      catch (error) {
+        console.error("Error creating room:", error);
+        
+      }
+    }
   return (
-    <div>
+<div>
         {/* Modal */}
         {showModal && (
   <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -49,7 +75,7 @@ interface RoomModalProps {
       <h2 className="text-xl font-bold mb-4 text-center">Create a New Room</h2>
       <div>
       <input className='border border-amber-50 w-full mb-4' placeholder='Enter room name' onChange={(e)=>setRoomId(e.target.value)} />
-      <input className='border border-amber-50 w-full mb-4' placeholder='Enter bet amount' type="number" onChange={(e)=>setBetAmount(e.target.value)} />
+      <input className='border border-amber-50 w-full mb-4' placeholder='Enter bet amount in SOL' type="number" onChange={(e)=>setBetAmount(Number(e.target.value))} />
       </div>
       <div className="flex justify-between">
         <button type="button" className="bg-blue-600 p-2 rounded hover:bg-blue-700" onClick={createRoom}>

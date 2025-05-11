@@ -1,8 +1,10 @@
 "use client";
 
-import { useContractCall } from "./contractCall";
 import { useState} from "react";
 import { useRouter } from "next/navigation";
+import { useProgram } from "../lib/ProgramProvider";
+import { useAnchorWallet } from "@solana/wallet-adapter-react";
+import { PublicKey } from "@solana/web3.js";
 
 
 interface RoomModalProps {
@@ -14,32 +16,45 @@ interface RoomModalProps {
 function JoinRoomModal({joinMinesModal,setjoinMinesModal}: RoomModalProps) {
 
     const router = useRouter();
+    const { program } = useProgram();
+    const wallet = useAnchorWallet();
+
+    const publicKey = wallet?.publicKey;
 
   const [roomId, setRoomId] = useState("");
-  const { callContract} = useContractCall();
 
   
   const joinRoom = async () => {
-    try {
-        const tx = await callContract({
-        functionName: "joinRoom",
-        args: [roomId],
-      });
-
-      if(tx){
-        console.log(`Room joined successfully at ${roomId}`);
-        setjoinMinesModal(false);
-        setRoomId("");
-      
-        router.push(`/Games/mines/${roomId}`);
-      }
-      else{
-        console.log("failed to join room");
-      }
-    } catch (error) {
-      console.error("Error joining room:", error);
+    if (!program || !publicKey) {
+        console.log("Program or wallet not found");
+        return;
     }
-  };
+
+    try {
+      const [pda, bump] = await PublicKey.findProgramAddressSync(
+        [Buffer.from("room"), Buffer.from(roomId)],
+        program.programId
+      );
+      console.log("PDA: ", pda.toString());
+      console.log("Bump: ", bump);
+
+        const tx = await program.methods
+            .joinRoom()
+            .accounts({
+                room: pda,
+                user: publicKey,
+            })
+            .rpc();
+
+        console.log("Transaction: ", tx);
+        console.log("Room joined successfully");
+        setjoinMinesModal(false);
+        router.push(`/Games/mines/${roomId}`);
+    } catch (err) {
+        console.error("Error joining room:", err);
+        alert("Invalid Room ID");
+    }
+};
   return (
     <div>
         {/* Modal */}
@@ -60,7 +75,7 @@ function JoinRoomModal({joinMinesModal,setjoinMinesModal}: RoomModalProps) {
         </button>
         <button
           type="button"
-          onClick={() => setjoinMinesModal(false)}
+          onClick={() =>{ setjoinMinesModal(false);setRoomId("")}}
           className="bg-gray-500 p-2 rounded hover:bg-gray-600"
         >
           Cancel

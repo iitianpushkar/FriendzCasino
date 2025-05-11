@@ -1,186 +1,214 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState,useCallback } from "react";
 import Navbar from "@/app/components/navbar";
 import HomeSidebar from "@/app/components/homeSidebar";
 import {  useParams } from "next/navigation";
-import { useContractCall } from "@/app/components/contractCall";
-import { parseEther, formatEther} from "viem";
-import {useAccount } from "wagmi";
-import {abi} from "@/app/abi";
-import { usePollContract } from "@/app/lib/usePollContract";
-import {useContract} from "@/app/lib/contract";
 import Image from "next/image";
+import { useAnchorWallet } from "@solana/wallet-adapter-react";
+import { useProgram } from "@/app/lib/ProgramProvider";
+import { PublicKey } from "@solana/web3.js";
+import {Room} from "../interface"
 
-type RoomData = [string, boolean, number, number, bigint, boolean, boolean, string, bigint];
 
 export default function RoomMines() {
   const [minePositions, setMinePositions] = useState<number[]>([]);
   const [numMines, setNumMines] = useState(0);
   const [betPlaced, setBetPlaced] = useState(false);
   const [message, setMessage] = useState("");
-  const [betAmount, setBetAmount] = useState(0);
   const [gems, setGems] = useState(0);
-  const [roomData, setRoomData] = useState<RoomData | null>(null);
-  const [playersJoined, setPlayersJoined] = useState<string[] | null>(null);
-  const [playersBetted, setPlayersBetted] = useState<string[] | null>(null);
+  const [roomData, setRoomData] = useState<Room | null>(null);
+
+  const [roomPda, setRoomPda] = useState<PublicKey | undefined>(undefined);
 
   const [gameStarted, setGameStarted] = useState(false);
   const [cellsChosen, setCellsChosen] = useState<number[]>([]);
+  const [gameOverMessage, setGameOverMessage] = useState("");
+  const [yourScore,setYourScore] = useState(0);
 
   const [showModal, setShowModal] = useState(false);
+  const [roomMines, setRoomMines] = useState(0);
+  const [roomGems, setRoomGems] = useState(0);
 
   const params= useParams();
   const {roomId} = params as {roomId: string};
- 
-  const { callContract } = useContractCall();
-
-    const contract = useContract();
-
-  const account = useAccount();
 
   const mineSet = new Set(minePositions.map((pos) => Number(pos)));
 
+  const { program } = useProgram();
+  const wallet = useAnchorWallet();
+  const publicKey = wallet?.publicKey;
 
-  const { data: roomdata } = usePollContract<[string, boolean, number, number, bigint, boolean, boolean, string, bigint]>({
-    address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`,
-    abi,
-    functionName: "rooms",
-    args: [roomId],
-    pollInterval: 2000,
-  });
-  
-  useEffect(() => {
-    if (roomdata) {
-      setRoomData(roomdata);
-      setBetAmount(Number(formatEther(roomdata[4])));
-      console.log("Room Data:", roomdata);
+  const fetchRoomData = useCallback(async () => {
+    if (!program || !publicKey) {
+      console.log("Program or wallet not found");
+      return;
     }
-  }, [roomdata]);
-  
-  
-  const { data: playersjoined = [] } = usePollContract<string[]>({
-    address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`,
-    abi,
-    functionName: "getJoinedPlayers",
-    args: [roomId],
-    pollInterval: 2000, 
-  });
-  
-  useEffect(() => {
-    if (playersjoined && playersjoined.length > 0) {
-      setPlayersJoined(playersjoined);
-      console.log("Players Joined:", playersjoined);
-    }
-  }, [playersjoined]);
-  
-  
-  //-----------------------------------------------------
-  
-  const { data: playersbetted = [] } = usePollContract<string[]>({
-    address: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`,
-    abi,
-    functionName: "getActivePlayers",
-    args: [roomId],
-    pollInterval: 2000, 
-  });
-  
-  useEffect(() => {
-    if (playersbetted && playersbetted.length > 0 && account && account.address) {
-      setPlayersBetted(playersbetted);
-      console.log("Players Betted:", playersbetted);
-      if(playersbetted.includes(account.address)){
-        setBetPlaced(true);
-      }
-    }
-  }, [playersbetted,account]);
-
-
-
-    useEffect(() => {
-      if(roomData && account){
-       if(roomData[5] == true){
-          setGameStarted(true);
-          setNumMines(roomData[2]);
-          setGems(roomData[3]);
-        }
-      }
-
-    },[account,roomData]);
-
-        contract?.on("GameOverEvent", (room, winners, score) => {
-          if(room==roomId){
-            setGameStarted(false);
-            setBetPlaced(false);
-            setPlayersBetted([]);
-            setNumMines(0);
-            setGems(0);
-          console.log(`Game over! Room ID: ${room}, Winner: ${winners},Score: ${score}`);
-          setMessage("Game Over! Winner: " + winners + " Score: " + score);
-          setShowModal(true);
-          }
-        });
-    
-    
-    
-        contract?.on("MinePositionEvent", (room, minePositions) => {
-          if(room==roomId){
-          console.log(`Mine positions for room ${room}: ${minePositions}`);
-          setMinePositions(minePositions);
-          }
-        });
-
-        contract?.on('GameStartedEvent', (room) => {
-          if(room==roomId){
-         // console.log(`🏆 Game started by leader ${leader}`);
-          setMessage("Game started!");
-          }
-          }
-        );
-
-        contract?.on('MineRevealEvent', (room) => {
-          if(room==roomId){
-          setMessage("Mine revealing soon!");
-          }
-        });
-  
-  const handleBet = async () => {
-
     try {
-      const tx = await callContract({
-        functionName:"bet",
-        args: [roomId],
-        value:parseEther(betAmount.toString()),
+      const [pda,bump] = PublicKey.findProgramAddressSync(
+        [Buffer.from("room"), Buffer.from(roomId)],
+        program.programId
+      );
+      console.log("Room PDA: ", pda.toString(), "Bump: ", bump);
+      setRoomPda(pda);
+      const roomAccount = await program.account.room.fetch(new PublicKey(pda));
+      console.log("Room account data:", roomAccount);
+      setRoomData(roomAccount as unknown as Room);
+    }
+    catch (error) {
+      console.error("Error fetching room data:", error);
+    }
+  },[program, publicKey, roomId])
+
+  useEffect(() => {
+    fetchRoomData();
+  }, [fetchRoomData]);
+  
+
+  useEffect(() => {
+    if (!program) return;
+  
+    const listeners: number[] = [];
+  
+    const setupListeners = async () => {
+
+      const joinedListener = await program.addEventListener("PlayerJoinedEvent", (event) => {
+
+        if(event.roomId === roomId) {
+          fetchRoomData();
+        }
+      })
+      const betListener = await program.addEventListener("BetEvent", async (event) => {
+        if (event.player.toString() === publicKey?.toString()) {
+          setBetPlaced(true);
+          setMessage(`You betted`);
+        } 
+        if (event.roomId === roomId) {
+          await fetchRoomData();
+        }
+      });
+
+      const submitListener = await program.addEventListener("PlayerCellsEvent", (event) => {
+
+        if(event.player.toString() === publicKey?.toString()) {
+          setMessage(`You submitted cells.`);
+        }
+
+      })
+
+      const hashMismatchListener = await program.addEventListener("HashMismatchEvent", (event) => {
+        if(event.roomId === roomId) {
+          setMessage(`❌ Hash mismatch for player`);
+          console.log(`submitted hash: ${event.submittedHash}`);
+          console.log(`expected hash: ${event.expectedHash}`);
+          fetchRoomData();
+        }
+      });
+
+      const scoreListener = await program.addEventListener("ScoreEvent", (event) => {
+        if(event.player.toString() === publicKey?.toString()) {
+          fetchRoomData();
+          console.log(`🏆Your score: ${event.score}`);
+          setYourScore(event.score);
+        }
+      });
+
+      const minePositionListener = await program.addEventListener("MinePositionEvent", (event) => {
+        if(event.roomId === roomId) {
+          console.log(`💣 Mine positions: ${event.revealedMines}`);
+          fetchRoomData();
+          setMinePositions(event.revealedMines);
+        }
       });
   
-      if(tx){
-        setMessage("Bet placed successfully!");
-      }
-      else{
-        setMessage("Failed to place bet.");
-      }
+      const gameOverListener = await program.addEventListener("GameOverEvent", async (event) => {
+        if(event.roomId === roomId) {
+          console.log(`🏆 Game Over! Winner: ${event.winners.toString()} with score ${event.score}`);
+          setBetPlaced(false);
+          setGameStarted(false);
+          setMessage(`🏆 Game Over! Bet again`)
+          setGameOverMessage(`🏆 Winners:${event.winners.toString().split(",")} with score ${event.score}.`)
+          setShowModal(true);
+          await fetchRoomData();
+        }
+      });
+  
+      const startListener = await program.addEventListener("GameStartedEvent", async (event) => {
+        if(event.roomId===roomId){
+          setMessage("🔄 Game started! Start clicking.");
+          setGameStarted(true);
+          await fetchRoomData();
+          setRoomMines(event.mines);
+          setRoomGems(event.gems);
+        }
+
+      });
+  
+      listeners.push(joinedListener,betListener, gameOverListener, startListener,minePositionListener, hashMismatchListener, scoreListener, submitListener);
+    };
+  
+    setupListeners();
+  
+    // Clean up listeners when component unmounts
+    return () => {
+      listeners.forEach((listenerId) => {
+        program.removeEventListener(listenerId);
+      });
+    };
+  }, [program,publicKey]);
+  
+  const handleBet = async () => {
+    if (!program || !publicKey) {
+      console.log("Program or wallet not found");
+      return;
+    }
+    try {
+      const tx = await program.methods
+        .bet()
+        .accounts({
+          room: roomPda,
+          user: publicKey,
+        })
+        .rpc();
+      console.log("Transaction: ", tx);
+      console.log("Bet placed successfully");
       
     } catch (error) {
       console.error("Error placing bet:", error);
       setMessage("Error placing bet.");
-      
     }
   };
 
   const handleStartGame = async () => {
+
+    if (!program || !publicKey) {
+      console.log("Program or wallet not found");
+      return;
+    }
+
+    if (numMines < 3 || gems < 5 || numMines >= 21 || gems >= 23) {
+      alert("Please enter valid values for mines and gems.");
+      return;
+    }
+    if(!betPlaced){
+      alert("Please place a bet before starting the game.");
+      return;
+    }
+    if (gameStarted) {
+      alert("Game already started. Cannot start again.");
+      return;
+    }
+
     try {
-      const tx = await callContract({
-        functionName:"startGame",
-        args: [roomId,numMines,gems],
-      });
-  
-      if(tx){
-        return;
-      }
-      else{
-        setMessage("Failed to start game.");
-      }
-      
+      const tx = await program.methods
+        .startGame(numMines, gems)
+        .accounts({
+          room: roomPda,
+          user: publicKey,
+        })
+        .rpc();
+      console.log("Transaction: ", tx);
+      console.log("Game started successfully");
     } catch (error) {
       console.error("Error starting game:", error);
       setMessage("Error starting game.");
@@ -193,20 +221,33 @@ export default function RoomMines() {
   
     if (cellsChosen.includes(idx)) return;
   
-    if (cellsChosen.length < gems) {
+    if (cellsChosen.length < roomGems) {
       setCellsChosen((prev) => [...prev, idx]);
     }
+
+    return null;
   }
 
   const handleSubmitCells = async () => {
     try {
-      const tx = await callContract({
-        functionName: "cellsChosen",
-        args: [roomId, cellsChosen],
-      });
-      if(tx){
-        setMessage("Cells submitted successfully!");
+
+      if (!program || !publicKey) {
+        console.log("Program or wallet not found");
+        return;
       }
+      if (cellsChosen.length < roomGems) {
+        alert("Please select all cells before submitting.");
+        return;
+      }
+      const tx = await program.methods
+        .cellsChosen(Buffer.from(cellsChosen))
+        .accounts({
+          room: roomPda,
+          user: publicKey,
+        })
+        .rpc();
+      console.log("Transaction: ", tx);
+      console.log("Cells submitted successfully");
     }
     catch(error){
       console.error("Error submitting cells:", error);
@@ -214,27 +255,32 @@ export default function RoomMines() {
   }
 
   const handleReveal = async () => {
+
+    if (!program || !publicKey) {
+      console.log("Program or wallet not found");
+      return;
+    }
+    if (cellsChosen.length < roomGems) {
+      alert("Please select all cells before revealing.");
+      return;
+    }
     try {
 
-      const tx = await callContract({
-        functionName: "revealMines",
-        args: [roomId],
-      });
-  
-      if (tx) {
-        return;
-      } else {
-        setMessage("Failed to reveal mines.");
-      }
+      const tx = await program.methods
+        .revealMines()
+        .accounts({
+          room: roomPda,
+          user: publicKey,
+        })
+        .rpc();
+      console.log("Transaction: ", tx);
+      console.log("Mines revealing....");
       
     } catch (error) {
       console.error("Error revealing mines:", error);
       
     }
   }
-  
-  console.log("Mine Positions:", minePositions);
-  console.log("Cells Chosen:", cellsChosen);
 
   const renderCellContent = (idx:number) =>
   {
@@ -242,11 +288,10 @@ export default function RoomMines() {
       return null;
     }
     else{
-      const isMine = mineSet.has(idx);
         return (
           <Image
-            src={isMine ? "/mine.svg" : "/gem.svg"}
-            alt={isMine ? "mine" : "gem"}
+            src={mineSet.has(idx) ? "/mine.svg" : "/gem.svg"}
+            alt={mineSet.has(idx) ? "mine" : "gem"}
             width={111}
             height={101}
           />
@@ -310,12 +355,12 @@ export default function RoomMines() {
               <div className="text-center text-sm text-white">{message}</div>
             )}
 
-            <div className="bet-amount text-white text-sm">Bet Amount needed : {betAmount}</div>
-            <div className="bet-amount text-white text-sm">Players Joined : {playersJoined ? playersJoined.length : "0"}</div>
-            <div className="bet-amount text-white text-sm">Players Betted : {playersBetted ? playersBetted.length : "0"}</div>
-            <div className="bet-amount text-white text-sm">Total Bet : {roomData ? formatEther(roomData[8]) : "0"}</div>
-            <div className="bet-amount text-white text-sm">Gems : {gems ? gems: "Game not started yet"}</div>
-            <div className="bet-amount text-white text-sm">Mines : {numMines? numMines: "Game not started yet"}</div>
+            <div className=" text-white text-sm">Bet Amount needed : {roomData && roomData.betAmount.toNumber()/1000000000}</div>
+            <div className=" text-white text-sm">Players Joined : {roomData && roomData.joined.length}</div>
+            <div className="text-white text-sm">Players Betted : {roomData && roomData.active.length}</div>
+            <div className="text-white text-sm">Total Bet : {roomData && roomData.totalBet.toNumber()/1000000000}</div>
+            <div className="text-white text-sm">Mines : {roomMines}</div>
+            <div className ="text-white text-sm">Gems: {roomGems}</div>
           </div>
 
           {/* Game Frame */}
@@ -340,19 +385,42 @@ export default function RoomMines() {
       </div>
 
       {showModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
-               <div className="absolute inset-0  backdrop-blur-[1px]"></div>
-               <div className="relative bg-[#1a2338] p-6 rounded-xl w-full max-w-md text-white shadow-2xl z-10">
-                  <h2 className="text-lg font-bold">{message}</h2>
-                   <button onClick={() =>{
-                    setShowModal(false);
-                    setMessage("");
-                    setMinePositions([]);
-                    setCellsChosen([]);
-                    }} className="mt-4 bg-blue-500 text-white px-4 py-2 rounded">OK</button>
-          </div>
-        </div>
-      )}
+  <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="absolute inset-0 backdrop-blur-[1px]" />
+    <div
+      className="
+        relative 
+        bg-[#1a2338] 
+        p-6 
+        rounded-xl 
+        text-white 
+        shadow-2xl 
+        z-10
+        w-auto          /* let width size to content */
+        max-w-[90vw]    /* but never exceed 90% of viewport */
+        break-words     /* wrap long strings */
+      "
+    >
+      <h2 className="text-lg font-bold mb-2">{gameOverMessage}</h2>
+        <div className="font-medium">Your Score: {yourScore}</div>
+      
+      <button
+        onClick={() => {
+          setShowModal(false);
+          setMessage("");
+          setMinePositions([]);
+          setCellsChosen([]);
+          setRoomMines(0);
+          setRoomGems(0);
+        }}
+        className="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+      >
+        OK
+      </button>
+    </div>
+  </div>
+)}
+
     </>
   );
 }
